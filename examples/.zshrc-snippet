@@ -1,0 +1,60 @@
+# =============================================================================
+# Easy Clone CLI - ZSH Configuration Snippet
+# =============================================================================
+# Add this to your ~/.zshrc after compinit
+
+# Source the clone completion function
+if [[ -f "$HOME/.config/zsh/clone-completion.zsh" ]]; then
+  source "$HOME/.config/zsh/clone-completion.zsh"
+fi
+
+# Clone command with smart owner prefix handling
+clone() {
+  if [[ -z "$1" ]]; then
+    echo "Usage: clone <repo_name|owner/repo>"
+    echo ""
+    echo "Examples:"
+    echo "  clone dotfiles                    # Clone AIntelligentTech/dotfiles"
+    echo "  clone AIntelligentTech/brain      # Clone with full slug"
+    echo "  clone username/repository         # Clone from other owner"
+    echo ""
+    echo "Autocomplete:"
+    echo "  clone <TAB>                       # Show available repos"
+    echo ""
+    echo "Commands:"
+    echo "  clone-refresh                     # Update repository cache"
+    return 1
+  fi
+
+  local repo_slug="$1"
+
+  # If no slash in input, prepend default owner
+  if [[ ! "$repo_slug" == *"/"* ]]; then
+    repo_slug="AIntelligentTech/${repo_slug}"
+  fi
+
+  # Clone with custom SSH remote or standard GitHub SSH
+  # Option 1: Custom SSH remote (requires git config)
+  # git clone "aintelligenttech-github:${repo_slug}.git"
+
+  # Option 2: Standard GitHub SSH (recommended if unsure)
+  git clone "git@github.com:${repo_slug}.git"
+}
+
+# Ensure cache directory exists
+mkdir -p "$HOME/.cache/zsh-completions"
+
+# =============================================================================
+# ZSH Completion Context Configuration
+# =============================================================================
+# This prevents file completion fallback and uses our custom completer
+
+# Use ONLY our custom completer (no completer chain)
+zstyle ':completion:*:clone:*' completer _clone_complete
+
+# Explicitly reject file patterns
+zstyle ':completion:*:clone:*' file-patterns '(no-files)'
+
+# Optional: Customize completion display
+# zstyle ':completion:*:clone:*' format '%F{yellow}%d%f'
+# zstyle ':completion:*:clone:*' group-name ''
